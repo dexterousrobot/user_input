@@ -1,0 +1,8 @@
+README.md
+setup.py
+user_input/space_mouse.py
+user_input.egg-info/PKG-INFO
+user_input.egg-info/SOURCES.txt
+user_input.egg-info/dependency_links.txt
+user_input.egg-info/not-zip-safe
+user_input.egg-info/top_level.txt

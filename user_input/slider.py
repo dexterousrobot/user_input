@@ -1,53 +1,53 @@
 import tkinter as tk
-POSE_LABEL_NAMES = ["x", "y", "z", "Rx", "Ry", "Rz"]
-
 
 class Slider:
     def __init__(self,
-        init_pose=[0, 0, 0, 0, 0, 0],
-        pose_llims=[-5, -5, 0, -15, -15, -180],
-        pose_ulims=[ 5,  5, 5,  15,  15,  180]
+        init=[0, 0, 0, 0, 0, 0],
+        label_names = ["x", "y", "z", "Rx", "Ry", "Rz"],
+        llims=[-5, -5, 0, -15, -15, -180],
+        ulims=[ 5,  5, 5,  15,  15,  180]
     ):    
-        self.pose_ids = []
+        self.ids = []
         self.tk = tk.Tk()
         self.tk.geometry("300x500+200+0")
-        for i, label_name in enumerate(POSE_LABEL_NAMES):
-            self.pose_ids.append(
-                tk.Scale(self.tk, from_=pose_llims[i], to=pose_ulims[i],
+        for i, label_name in enumerate(label_names):
+            self.ids.append(
+                tk.Scale(self.tk, from_=llims[i], to=ulims[i],
                     label=label_name, length=400, orient=tk.HORIZONTAL, 
-                    tickinterval=(pose_ulims[i]-pose_llims[i])/4, resolution=0.1
+                    tickinterval=(ulims[i]-llims[i])/4, resolution=0.1
                 )
             )
-            self.pose_ids[i].pack()
-            self.pose_ids[i].set(init_pose[i])
+            self.ids[i].pack()
+            self.ids[i].set(init[i])
 
-    def read(self, pose):
+    def read(self):
         self.tk.update_idletasks()
         self.tk.update()
-        for i in range(len(pose)):
-            pose[i] = self.pose_ids[i].get()
-        return pose
+        values = []
+        for id in self.ids:
+            values.append(id.get())
+        return values
 
 # within tactile gym
 class Slider_sim:
     def __init__(self,
         embodiment, 
-        init_pose=[0, 0, 0, 0, 0, 0],
-        pose_llims=[-5, -5, 0, -15, -15, -180],
-        pose_ulims=[ 5,  5, 5,  15,  15,  180]
+        init=[0, 0, 0, 0, 0, 0],
+        label_names = ["x", "y", "z", "Rx", "Ry", "Rz"],
+        llims=[-5, -5, 0, -15, -15, -180],
+        ulims=[ 5,  5, 5,  15,  15,  180]
     ):    
-        self.embodiment = embodiment
-        self.pose_ids = []
-        for i, label_name in enumerate(POSE_LABEL_NAMES):
+        self._pb = embodiment.controller._client._sim_env._pb
+        self.ids = []
+        for i, label_name in enumerate(label_names):
             self.pose_ids.append(
-                embodiment.controller._client._sim_env._pb.addUserDebugParameter(
-                    label_name, pose_llims[i], pose_ulims[i], init_pose[i]
+                self._pb.addUserDebugParameter(
+                    label_name, llims[i], ulims[i], init[i]
                 )
             )
 
-    def read(self, pose):
-        for i in range(len(pose)):
-            pose[i] = self.embodiment.controller._client._sim_env._pb.readUserDebugParameter(
-                self.pose_ids[i]
-            ) 
-        return pose
+    def read(self, values):
+        values = []
+        for id in self.ids:
+            values[i] = self._pb.readUserDebugParameter(id) 
+        return values

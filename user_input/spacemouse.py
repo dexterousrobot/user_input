@@ -1,5 +1,4 @@
 import pyspacemouse
-import numpy as np
 import time
 import threading
 
@@ -62,8 +61,8 @@ class SpaceMouse:
 
 if __name__ == '__main__':
 
-    space_mouse = SpaceMouse()
-    with space_mouse:
-        for i in range(100):
-            print(space_mouse.get_state())
+    spacemouse = SpaceMouse()
+    with spacemouse:
+        for i in range(1000):
+            print(spacemouse.get_state())
             time.sleep(0.01)

@@ -1,38 +1,64 @@
 from pynput import keyboard
 import time
+import numpy as np
 
 
-def on_press(key):
-    try:
-        print('alphanumeric key {0} pressed'.format(
-            key.char))
-    except AttributeError:
-        print('special key {0} pressed'.format(
-            key))
+LEFT, RIGHT, FORE, BACK, SHIFT, CTRL, QUIT \
+    = 65295, 65296, 65297, 65298, 65306, 65307, ord('Q')
 
 
-def on_release(key):
-    print('{0} released'.format(
-        key))
-    if key == keyboard.Key.esc:
-        # Stop listener
-        return False
+class Keyboard:
+    def __init__(self):
+
+        self.currently_pressed = set()
+
+        self.listener = keyboard.Listener(
+            on_press=self._on_press,
+            on_release=self._on_release
+        )
+
+    def __enter__(self):
+        self.listener.start()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.listener.stop()
+
+    def _on_press(self, key):
+        self.currently_pressed.add(key)
+
+    def _on_release(self, key):
+        try:
+            self.currently_pressed.remove(key)
+        except KeyError:
+            pass
+
+    def get_state(self):
+
+        pose = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+
+        if keyboard.Key.ctrl in self.currently_pressed:
+            ids = [4, 5]
+        elif keyboard.Key.shift in self.currently_pressed:
+            ids = [2, 3]
+        else:
+            ids = [0, 1]
+
+        if keyboard.Key.up in self.currently_pressed:
+            pose[ids[0]] = 1.0
+        if keyboard.Key.down in self.currently_pressed:
+            pose[ids[0]] = -1.0
+        if keyboard.Key.right in self.currently_pressed:
+            pose[ids[1]] = 1.0
+        if keyboard.Key.left in self.currently_pressed:
+            pose[ids[1]] = -1.0
+
+        return np.array(pose)
 
 
-# Collect events until released
-# with keyboard.Listener(
-#         on_press=on_press,
-#         on_release=on_release) as listener:
-#     listener.join()
+if __name__ == '__main__':
 
-# ...or, in a non-blocking fashion:
-listener = keyboard.Listener(
-    on_press=on_press,
-    on_release=on_release
-)
-
-listener.start()
-print('do stuff')
-time.sleep(10.0)
-print('finish doing stuff')
-listener.join()
+    keyboard_listener = Keyboard()
+    with keyboard_listener:
+        for i in range(1000):
+            print(keyboard_listener.get_state())
+            time.sleep(0.01)
